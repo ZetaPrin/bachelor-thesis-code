@@ -1,0 +1,120 @@
+! Inlist to evolve a 1.5 solar mass star from ZAMS to TAMS (step 1 of making an sdB star)
+
+&star_job
+   ! see star/defaults/star_job.defaults
+   
+   !Load previous model
+   load_saved_model = .true.
+   load_model_filename = 'zams.mod'
+
+   !Save the model at the end of the run
+   save_model_when_terminate = .true.
+   save_model_filename = 'tams.mod'
+
+   history_columns_file = 'history_columns.list'
+
+   ! display on-screen plots
+   pgstar_flag = .true.
+   
+   pause_before_terminate = .true.
+   
+   initial_zfracs = 6 ! Sets the initial metal abundance distribution
+   
+   !Reset the model number and age to zero
+   set_initial_model_number = .true.
+   initial_model_number = 0
+   set_initial_age = .true.
+   initial_age = 0
+   
+
+/ ! end of star_job namelist
+
+
+&eos
+   ! see eos/defaults/eos.defaults
+
+/ ! end of eos namelist
+
+
+&kap
+   ! see kap/defaults/kap.defaults
+
+   use_Type2_opacities = .true.
+   Zbase = 0.014 ! Reference metallicity used for the opacity tables
+   kap_file_prefix = 'a09' !Select the Asplund et al. (2009) abundance mixture
+   
+
+/ ! end of kap namelist
+
+
+&controls
+
+   ! see star/defaults/controls.defaults
+
+   ! Initial stellar parameters (consistent with zams.mod)
+   initial_mass =1.5  ! Solar masses
+   initial_z = 0.014
+
+   ! Stop evolution when the central hydrogen abundance falls below 10^-4
+   xa_central_lower_limit_species(1) = 'h1'
+   xa_central_lower_limit(1) = 0.0001
+   
+   ! wind (mass loss disabled)
+   hot_wind_scheme = 'Dutch'
+   Dutch_scaling_factor = 0d0 
+
+   cool_wind_RGB_scheme = 'Reimers'
+   cool_wind_AGB_scheme = 'Dutch'    
+   Reimers_scaling_factor = 0d0
+
+   ! atmosphere
+
+   ! rotation
+
+   ! element diffusion
+
+   ! mlt
+
+   ! mixing
+
+      ! Convective premixing
+      do_conv_premix = .true. 
+      do_premix_heating = .true. 
+       
+      ! Overshooting
+      overshoot_scheme(:) = 'exponential'
+      overshoot_zone_type(:) = 'any'
+      overshoot_zone_loc(:) = 'any'
+      overshoot_bdy_loc(:) = 'top'
+      overshoot_f(:) = 0.02 !Controls the exponential decay of mixing
+      overshoot_f0(:) = 0.003 !Reference point inside the convective region
+      
+       !semiconvection
+       use_Ledoux_criterion = .true.
+       alpha_semiconvection = 1  !Semiconvective mixing efficiency
+
+
+   ! Numerical resolution and timestep controls 
+   mesh_delta_coeff = 1.0d0
+   time_delta_coeff = 1.0d0
+
+   ! Solver
+   ! Options for energy conservation (see MESA V, Section 3)
+   energy_eqn_option = 'dedt' 
+   use_gold_tolerances = .true. ! Use stricter solver tolerances 
+
+   ! output
+   profile_interval = 50
+   max_num_profile_models = -1
+   photo_interval = 50
+   history_interval = 1
+   terminal_interval = 5
+   
+/ ! end of controls namelist
+
+&pgstar
+   ! Display stellar evolution plots
+   Kipp_win_flag = .true.
+   HR_win_flag = .true.
+   
+/ ! end of pgstar namelist

@@ -1,0 +1,142 @@
+
+! Inlist to strip the hydrogen-rich envelope of a 1.5 solar mass star at the tip of the RGB (step 3 of making an sdB star)
+
+&star_job
+   ! see star/defaults/star_job.defaults
+
+   ! Load previous model
+   load_saved_model = .true.
+   load_model_filename = 'rgb.mod'
+
+   ! Save the model at the end of the run
+   save_model_when_terminate = .true.
+   save_model_filename = 'stripped.mod'
+
+   history_columns_file = 'history_columns.list'
+
+   ! Display on-screen plots
+   pgstar_flag = .true.
+
+   ! Pause and save a photo before termination
+   pause_before_terminate = .true.
+   save_photo_when_terminate = .true.
+   save_photo_filename = 'stripped.photo'
+
+   ! Simulate common-envelope stripping by removing the hydrogen-rich envelope
+   relax_initial_mass_to_remove_H_env = .true.
+   extra_mass_retained_by_remove_H_env = 2d-2 ! Retain 0.02 Msun above the He core mass
+   lg_max_abs_mdot = -1 ! Maximum mass-loss rate of 0.1 Msun/year during relaxation
+
+   ! Change nuclear reaction network
+   change_initial_net = .true.
+   new_net_name = 'basic_plus_fe56_ni58.net'
+
+   ! Preserve the model number and stellar age from the previous model
+   set_initial_model_number = .false.
+   !initial_model_number = 0
+   set_initial_age = .false.
+   !initial_age = 0
+
+   ! Reset the accumulated energy conservation error
+   set_initial_cumulative_energy_error = .true.
+   new_cumulative_energy_error = 0d0
+
+/ ! end of star_job namelist
+
+
+
+&eos
+   ! see eos/defaults/eos.defaults
+
+/ ! end of eos namelist
+
+
+&kap
+   ! see kap/defaults/kap.defaults
+
+   ! Use Type 2 opacities to account for carbon and oxygen enhancement
+   use_Type2_opacities = .true.
+
+   ! Reference metallicity for opacity calculations
+   Zbase = 0.014
+
+   ! Use opacity tables based on the Asplund et al. (2009) solar abundances
+   kap_file_prefix = 'a09'
+
+/ ! end of kap namelist
+
+
+
+&controls
+
+   ! see star/defaults/controls.defaults
+
+   ! Initial stellar parameters (consistent with the loaded model)
+   initial_mass = 1.5 ! Solar masses
+   initial_z = 0.014
+
+   ! When to stop
+   max_model_number = 20000 ! Safety limit on the model number
+   power_he_burn_upper_limit = 5 ! Stop when helium-burning power exceeds 5 Lsun
+   when_to_stop_rtol = 1d-3
+   when_to_stop_atol = 1d-5
+
+   ! Wind
+   cool_wind_RGB_scheme = 'Reimers'
+   Reimers_scaling_factor = 0.5d0
+
+   ! Mixing length theory
+   mixing_length_alpha = 1.8d0
+   MLT_option = 'Cox'
+
+   ! Mixing
+
+      ! Convective premixing
+      do_conv_premix = .true.
+      do_premix_heating = .true. ! Account for energy changes due to premixing
+
+      ! Overshooting
+      overshoot_scheme(:) = 'exponential'
+      overshoot_zone_type(:) = 'any'
+      overshoot_zone_loc(:) = 'any'
+      overshoot_bdy_loc(:) = 'top'
+      overshoot_f(:) = 0.02 ! Controls the exponential decay of mixing
+      overshoot_f0(:) = 0.003 ! Reference point inside the convective region
+
+      ! Semiconvection
+      use_Ledoux_criterion = .true.
+      alpha_semiconvection = 1 ! Semiconvective mixing efficiency
+
+   ! Numerical resolution and timestep controls
+   varcontrol_target = 1d-3 ! Target relative change between models
+   min_timestep_limit = 1d-6 ! Minimum permitted timestep in seconds
+   max_years_for_timestep = 5d6 ! Maximum timestep of 5 million years
+   mesh_delta_coeff = 0.4 ! Controls spatial mesh resolution
+
+   ! Solver settings
+   energy_eqn_option = 'dedt' ! Energy equation formulation (see MESA V, Section 3)
+   use_gold_tolerances = .true. ! Use stricter solver tolerances
+   convergence_ignore_equL_residuals = .true. ! Ignore luminosity-equation residuals in convergence checks
+
+   ! Output
+   log_directory = 'LOGS'
+   profile_interval = 10
+   max_num_profile_models = -1
+   photo_interval = 20
+   photo_digits = 5
+   history_interval = 1
+
+   ! Terminal output
+   terminal_interval = 50
+   num_trace_history_values = 2
+   trace_history_value_name(1) = 'rel_E_err'
+   trace_history_value_name(2) = 'log_rel_run_E_err'
+
+/ ! end of controls namelist
+
+&pgstar
+   !pause_flag = .true.
+   Kipp_win_flag = .true.
+   HR_win_flag = .true.
+   
+/ ! end of pgstar namelist

@@ -1,0 +1,129 @@
+! Inlist to evolve a 1.5 solar mass star from TAMS along the RGB (step 2 of making an sdB star)
+
+&star_job
+   ! see star/defaults/star_job.defaults
+   
+   !Load previous model
+   load_saved_model = .true.
+   load_model_filename = 'tams.mod'
+
+   !Save a model at the end of the run
+   save_model_when_terminate = .true.
+   save_model_filename = 'rgb.mod'
+
+   history_columns_file = 'history_columns.list'
+
+   !Display on-screen plots
+   pgstar_flag = .true.
+   
+   pause_before_terminate = .true.
+   
+   initial_zfracs = 6 !Set the initial metal abundance distribution
+    
+   !Change net
+   change_initial_net = .true.
+   new_net_name = 'pp_and_cno_extras.net'
+
+/ ! end of star_job namelist
+
+
+&eos
+   ! see eos/defaults/eos.defaults
+
+/ ! end of eos namelist
+
+
+&kap
+   ! see kap/defaults/kap.defaults
+   use_Type2_opacities = .true.
+   Zbase = 0.014 !Reference metallicity used for the opacity tables
+   kap_file_prefix = 'a09' !Select the Asplund et al. (2009) abundance mixture
+
+/ ! end of kap namelist
+
+
+&controls
+
+   ! see star/defaults/controls.defaults
+
+   !Initial stellar parameters (consistent with zams.mod)
+   initial_mass =1.5 ! Solar masses
+   initial_z = 0.014
+
+   !When to stop
+   max_model_number = 25000  ! Maximum model number as a safety limit
+   he_core_mass_limit = 0.46 ! Stop when the He core reaches 0.46 Msun
+   
+
+   !Wind
+   cool_wind_RGB_scheme = 'Reimers'  
+   Reimers_scaling_factor = 0.5d0
+
+   ! atmosphere
+
+   ! rotation
+
+   ! element diffusion
+
+    ! Mixing length theory
+     mixing_length_alpha = 1.8d0
+     MLT_option = 'Cox'
+     
+   ! mixing
+      ! Predictive mixing at convective boundaries
+
+      ! Convective core
+      predictive_mix(1) = .true.
+      predictive_zone_type(1) = 'any'
+      predictive_zone_loc(1) = 'core'
+      predictive_bdy_loc(1) = 'any'
+      predictive_superad_thresh(1) = 0.005
+
+      ! Surface convection zone
+      predictive_mix(2) = .true.
+      predictive_zone_type(2) = 'any'
+      predictive_zone_loc(2) = 'surf'
+      predictive_bdy_loc(2) = 'any'
+      predictive_superad_thresh(2) = 0.001
+   
+      ! overshooting
+      overshoot_scheme(:) = 'exponential'
+      overshoot_zone_type(:) = 'any'
+      overshoot_zone_loc(:) = 'any'
+      overshoot_bdy_loc(:) = 'any'
+      overshoot_f(:) = 0.02 ! Controls the exponential decay of mixing
+      overshoot_f0(:) = 0.003 ! Reference point inside the convective region
+      
+      !semiconvection
+       use_Ledoux_criterion = .true.
+       alpha_semiconvection = 1
+
+   ! Numerical resolution and timestep controls 
+     varcontrol_target = 1d-3  ! Target relative change between models
+     max_years_for_timestep = 5d6  ! Maximum timestep of 5 million years
+     mesh_delta_coeff = 0.5
+
+   ! Solver settings
+     ! Energy equation formulation (see MESA V, Section 3)
+     energy_eqn_option = 'dedt'
+     use_gold_tolerances = .true.  ! Use stricter solver tolerances
+     convergence_ignore_equL_residuals = .true.
+
+   ! output
+    log_directory = 'LOGS'
+    profile_interval = 100
+    max_num_profile_models = -1
+    photo_interval = 500
+    photo_digits = 5
+    history_interval = 1
+   terminal_interval = 5
+   
+/ ! end of controls namelist
+
+&pgstar
+   ! Display stellar evolution plots
+   !pause_flag = .true.
+   Kipp_win_flag = .true.
+   HR_win_flag = .true.
+   
+/ ! end of pgstar namelist

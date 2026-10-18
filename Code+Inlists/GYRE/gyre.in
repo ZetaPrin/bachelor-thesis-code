@@ -1,0 +1,56 @@
+&constants
+/
+
+&model
+! Read stellar structure from a MESA evolutionary model
+  model_type = 'EVOL'  
+  file = '/home/gpriniot/mesa_projects/new_sdb/LOGS/profile585.data.GYRE'    
+  file_format = 'MESA' 
+/
+
+&mode
+  l = 1 ! Harmonic degree
+/
+
+&mode
+  l = 2 ! Harmonic degree
+/
+
+&osc
+  outer_bound = 'VACUUM' ! Assume the density vanishes at the stellar surface
+/
+
+&rot
+/
+
+&num
+  diff_scheme = 'MAGNUS_GL4' ! 4th-order collocation scheme for difference equations
+/
+
+&scan
+  grid_type = 'INVERSE'
+  freq_min = 21.0       ! Minimum frequency in microHz
+  freq_max = 1157.4     ! Maximum frequency in microHz (100 cycles/day)
+  freq_units = 'UHZ'
+  n_freq = 5000 ! Number of frequency points in the scan
+/
+
+&grid
+  w_osc = 30 ! Oscillatory region weight
+  w_exp = 4  ! Exponential region weight
+  w_ctr = 40 ! Central region weight
+/
+
+
+&ad_output
+  summary_file = 'summary.h5'                         ! File name for summary file
+  summary_item_list = 'l,n_pg,n_g,freq,prop_type,freq_units,E_norm, E, E_g, M_star,R_star' ! Fields to appear in summary file
+  detail_template = 'detail.l%l.n%n.h5'        	      ! File name template for detail files
+  detail_item_list = 'l,n_pg,n_g,prop_type,omega,x,xi_r,E,dE_dx,
+                      xi_h,c_1,As,V_2,Gamma_1,M_r,M_star,rho, R_star, freq, n_p' 	      ! Fields to appear in detail files
+  freq_units = 'UHZ'                  	     
+/
+
+&nad_output
+/
+

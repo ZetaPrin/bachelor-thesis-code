@@ -1,0 +1,150 @@
+
+! Inlist to evolve a stripped RGB core through the helium flash (step 4 of making an sdB star)
+
+&star_job
+   ! see star/defaults/star_job.defaults
+
+   ! Load previous model
+   load_saved_model = .true.
+   load_model_filename = 'stripped.mod'
+
+   ! Save the model at the end of the run
+   save_model_when_terminate = .true.
+   save_model_filename = 'after_flash.mod'
+   required_termination_code_string = 'xa_central_lower_limit'
+
+   history_columns_file = 'history_columns.list'
+
+   ! Display on-screen plots
+   pgstar_flag = .true.
+
+   ! Pause and save a photo before termination
+   pause_before_terminate = .true.
+   save_photo_when_terminate = .true.
+   save_photo_filename = 'after_flash.photo'
+
+   ! Change nuclear reaction network
+   change_initial_net = .true.
+   new_net_name = 'pp_and_cno_extras.net'
+
+   ! Solar abundance mixture (Asplund et al. 2009)
+   initial_zfracs = 6
+
+   ! Enable angular momentum diffusion
+   change_D_omega_flag = .true.
+   new_D_omega_flag = .true.
+
+   ! Reset the accumulated energy conservation error
+   set_initial_cumulative_energy_error = .true.
+   new_cumulative_energy_error = 0d0
+
+/ ! end of star_job namelist
+
+
+
+&eos
+   ! see eos/defaults/eos.defaults
+
+/ ! end of eos namelist
+
+
+&kap
+   ! see kap/defaults/kap.defaults
+
+   ! Use Type 2 opacities to account for carbon and oxygen enhancement
+   use_Type2_opacities = .true.
+
+   ! Reference metallicity for opacity calculations
+   Zbase = 0.014
+
+   ! Use opacity tables based on the Asplund et al. (2009) solar abundances
+   kap_file_prefix = 'a09'
+   kap_lowT_prefix = 'lowT_fa05_a09p' ! Low-temperature opacity tables
+   kap_CO_prefix = 'a09_co' ! C/O-enhanced opacity tables
+
+/ ! end of kap namelist
+
+
+
+
+&controls
+
+   ! see star/defaults/controls.defaults
+
+   ! Initial stellar parameters (consistent with the loaded model)
+   initial_mass = 1.5 ! Solar masses
+   initial_z = 0.014
+
+   ! When to stop
+   max_model_number = 20000 ! Safety limit on the model number
+   xa_central_lower_limit_species(1) = 'he4'
+   xa_central_lower_limit(1) = 0.95 ! Stop when central helium abundance drops below 0.95
+   when_to_stop_rtol = 1d-3
+   when_to_stop_atol = 1d-5
+
+   ! Wind
+   cool_wind_RGB_scheme = 'Reimers'
+   Reimers_scaling_factor = 2d-1
+
+   ! Mixing length theory
+   mixing_length_alpha = 1.8d0
+   MLT_option = 'Cox'
+
+   ! Mixing
+
+      ! Convective premixing
+      do_conv_premix = .true.
+      do_premix_heating = .true. ! Account for energy changes due to premixing
+
+      ! Overshooting
+      overshoot_scheme(:) = 'exponential'
+      overshoot_zone_type(:) = 'any'
+      overshoot_zone_loc(:) = 'any'
+      overshoot_bdy_loc(:) = 'any'
+      overshoot_f(:) = 0.02 ! Controls the exponential decay of mixing
+      overshoot_f0(:) = 0.003 ! Reference point inside the convective region
+
+      ! Semiconvection
+      use_Ledoux_criterion = .true.
+      alpha_semiconvection = 1 ! Semiconvective mixing efficiency
+
+   ! Numerical resolution and timestep controls
+   varcontrol_target = 1d-3 ! Target relative change between models
+   min_timestep_limit = 1d-8 ! Minimum permitted timestep in seconds
+   max_years_for_timestep = 5d6 ! Maximum timestep of 5 million years
+   time_delta_coeff = 0.5 ! Timestep adjustment coefficient
+   mesh_delta_coeff = 0.3 ! Controls spatial mesh resolution
+
+   ! Solver settings
+   energy_eqn_option = 'eps_grav' ! Energy equation formulation (see MESA V, Section 3)
+   use_gold_tolerances = .true. ! Use stricter solver tolerances
+   convergence_ignore_equL_residuals = .true. ! Ignore luminosity-equation residuals in convergence checks
+
+   ! Output
+   log_directory = 'LOGS'
+   profile_interval = 100
+   max_num_profile_models = -1
+   photo_interval = 20
+   photo_digits = 5
+   history_interval = 1
+
+   ! Save stellar structure data for GYRE
+   write_pulse_data_with_profile = .true.
+   pulse_data_format = 'GYRE'
+
+   ! Terminal output
+   terminal_interval = 5
+   num_trace_history_values = 2
+   trace_history_value_name(1) = 'rel_E_err'
+   trace_history_value_name(2) = 'log_rel_run_E_err'
+
+/ ! end of controls namelist
+   
+
+&pgstar
+
+   !pause_flag = .true.
+   Kipp_win_flag = .true.
+   HR_win_flag = .true.
+   
+/ ! end of pgstar namelist
